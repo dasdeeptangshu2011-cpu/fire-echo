@@ -1,0 +1,87 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --forest-950: #0a1f0a;
+  --forest-900: #0f2e0f;
+  --ember: #f97316;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  background: #0a1f0a;
+  color: #e8f0e8;
+  font-family: Inter, system-ui, sans-serif;
+  overflow: hidden;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0f2e0f;
+}
+::-webkit-scrollbar-thumb {
+  background: #2d6a2d;
+  border-radius: 3px;
+}
+
+@layer components {
+  .panel {
+    @apply bg-forest-900/80 border border-forest-700/60 rounded-xl backdrop-blur-sm;
+  }
+  .panel-header {
+    @apply text-xs font-semibold uppercase tracking-wider text-forest-500;
+  }
+  .status-pill {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold;
+  }
+  .btn-primary {
+    @apply bg-ember-500 hover:bg-ember-400 text-white font-semibold py-2.5 px-4 rounded-lg transition active:scale-95;
+  }
+  .btn-ghost {
+    @apply bg-forest-800 hover:bg-forest-700 text-white/90 font-medium py-2 px-3 rounded-lg transition;
+  }
+  .metric-value {
+    @apply text-2xl font-bold tabular-nums tracking-tight;
+  }
+  .metric-label {
+    @apply text-[11px] uppercase tracking-wide text-white/50;
+  }
+}
+
+/* Subtle grid background */
+.app-bg {
+  background-color: #0a1f0a;
+  background-image:
+    radial-gradient(ellipse at 20% 20%, rgba(45, 106, 45, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(249, 115, 22, 0.06) 0%, transparent 40%),
+    linear-gradient(rgba(36, 82, 36, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(36, 82, 36, 0.08) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.8); opacity: 0.8; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+.pulse-ring {
+  animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-in {
+  animation: fade-in 0.35s ease-out forwards;
+}
