@@ -1,32 +1,43 @@
-# React + TypeScript + Vite
+# FIRE-ECHO 2.0
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+FIRE-ECHO is a distributed forest-fire early-warning and environmental intelligence prototype for school robotics research.
 
-Currently, two official plugins are available:
+## Architecture
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+**Sentinel mesh → gateway → sensor fusion → adaptive event state → spatial localization → mobile verification → command dashboard**
 
-## React Compiler
+The system separates data origin explicitly:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **SIMULATION** — safe synthetic telemetry used for demonstrations.
+- **REAL** — telemetry confirmed from a connected ESP32/BLE gateway.
+- **OFFLINE/REPLAY** — historical or replayed observations; never presented as live.
 
-## Expanding the Oxlint configuration
+## Core ideas
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+- Sector-specific environmental baselines instead of one global threshold.
+- Multi-node weighted fusion and an uncertainty radius for event localization.
+- State progression from NORMAL through anomaly/corroboration to a probable/localized event.
+- Fault-tolerant network health and explicit sentinel status.
+- Mobile robot verification only after the distributed network identifies a suspicious region.
+- Shared coordinates across the live map, digital twin, and robot mission target.
+- Safe Simulation Lab for competition demonstrations without real fire or hazardous smoke.
+- Web Bluetooth Hardware Center for an ESP32 gateway using the FIRE-ECHO service/characteristic protocol.
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+## Run locally
+
+```bash
+npm install
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Production build:
+
+```bash
+npm run build
+```
+
+## Hardware protocol
+
+The dashboard reserves the FIRE-ECHO BLE service `7b6f0001-6d1e-4e5a-9a31-464952452d01` with telemetry, command, status, and configuration characteristics under the `...0002` through `...0005` UUIDs.
+
+The current web UI remains honest about hardware state: simulation is not labeled as real telemetry.
