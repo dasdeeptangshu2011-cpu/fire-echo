@@ -26,12 +26,14 @@ jobs:
           s=s.replace("else if(p.type==='robot_telemetry')", "else if((p as {type?:string}).type==='robot_telemetry')")
           p.write_text(s)
           PY
-      - run: npm install --no-audit --no-fund
-      - run: npm run build
-      - name: Commit automated source repair
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Build production bundle
+        run: npm run build
+      - name: Commit synchronized source and lockfile
         if: github.event_name == 'push'
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add src/App.tsx
-          git diff --cached --quiet || (git commit -m 'chore: repair generated App source' && git push)
+          git add src/App.tsx package-lock.json
+          git diff --cached --quiet || (git commit -m 'chore: synchronize build source and lockfile' && git push)
