@@ -1,0 +1,1 @@
+Deployment configuration is managed by vercel.json and package.json. Production output is dist/.
