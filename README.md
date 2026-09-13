@@ -89,3 +89,7 @@ npm run build
 ## Safe competition demonstration
 
 Use Simulation Lab / Competition Demo Mode. Do not use real fire or hazardous smoke. The demonstration progresses through environmental anomaly, corroboration, localization, operator dispatch and simulated robot verification.
+
+## Continuous validation
+
+Every push to `main` runs the production TypeScript/Vite build before the application is treated as deployable.
