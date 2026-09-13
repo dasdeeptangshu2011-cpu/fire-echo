@@ -1,25 +1,49 @@
-// FIRE-ECHO stationary sentinel starter for Arduino IDE + ESP32.
-// Replace the safe demo values with the exact sensors used in the prototype.
+#include <Arduino.h>
+#include <BLEDevice.h>
+#include <BLEServer.h>
+#include <BLEUtils.h>
+#include <BLE2902.h>
 
-const char *SENTINEL_ID = "S-01";
-const float X = 18.0;
-const float Y = 25.0;
+// FIRE-ECHO 2.0 Sentinel — Arduino IDE + ESP32.
+// Sensor readers are explicit placeholders until the selected physical modules are wired.
+const char* NODE_ID = "S01";
+const char* SERVICE_UUID = "7b6f0001-6d1e-4e5a-9a31-464952452d01";
+const char* TELEMETRY_UUID = "7b6f0002-6d1e-4e5a-9a31-464952452d01";
+BLECharacteristic* telemetry = nullptr;
 
-void setup() {
+float readTemperature(){ return NAN; }
+float readHumidity(){ return NAN; }
+int readSmoke(){ return -1; }
+bool readFlame(){ return false; }
+float readBattery(){ return -1; }
+
+void setup(){
   Serial.begin(115200);
+  BLEDevice::init(NODE_ID);
+  BLEServer* server=BLEDevice::createServer();
+  BLEService* service=server->createService(SERVICE_UUID);
+  telemetry=service->createCharacteristic(TELEMETRY_UUID,BLECharacteristic::PROPERTY_NOTIFY|BLECharacteristic::PROPERTY_READ);
+  telemetry->addDescriptor(new BLE2902());
+  service->start();
+  BLEAdvertising* advertising=BLEDevice::getAdvertising();
+  advertising->addServiceUUID(SERVICE_UUID);
+  advertising->start();
 }
 
-void loop() {
-  // Safe synthetic values until the physical sensor modules are wired.
-  float temperature = 29.5;
-  float humidity = 67.0;
-  int smokeIndex = 7;
-  float flameIndex = 0.0;
-  int battery = 96;
-
-  Serial.printf(
-    "{\"type\":\"telemetry\",\"source\":\"REAL\",\"sentinel\":\"%s\",\"x\":%.1f,\"y\":%.1f,\"temperature\":%.1f,\"humidity\":%.1f,\"smoke\":%d,\"flame\":%.2f,\"battery\":%d}\n",
-    SENTINEL_ID, X, Y, temperature, humidity, smokeIndex, flameIndex, battery
-  );
-  delay(2000);
+void loop(){
+  float temperature=readTemperature(),humidity=readHumidity(),battery=readBattery();
+  int smoke=readSmoke();
+  // Do not label unconnected sensors as real measurements.
+  String packet=String("{\"type\":\"sentinel_telemetry\",\"deviceId\":\"")+NODE_ID+
+    "\",\"timestamp\":"+String((unsigned long)millis())+
+    ",\"temperature\":"+(isnan(temperature)?String("null"):String(temperature,1))+
+    ",\"humidity\":"+(isnan(humidity)?String("null"):String(humidity,1))+
+    ",\"smoke\":"+String(smoke)+
+    ",\"flame\":"+(readFlame()?String("true"):String("false"))+
+    ",\"battery\":"+(battery<0?String("null"):String(battery,0))+
+    ",\"signal\":0}";
+  telemetry->setValue(packet.c_str());
+  telemetry->notify();
+  Serial.println(packet);
+  delay(1000);
 }
