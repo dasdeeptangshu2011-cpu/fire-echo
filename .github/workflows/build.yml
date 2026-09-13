@@ -14,16 +14,27 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Repair generated source if needed
+      - name: Apply production source hardening
         run: |
           python3 - <<'PY'
           from pathlib import Path
           import re
-          p=Path('src/App.tsx')
-          s=p.read_text()
-          s=re.sub(r"const groups:Record<Page,string>=\{.*?\} as Record<Page,string>", "const groups:Record<Page,string>={Home:'COMMAND','Live Map':'COMMAND','3D Digital Twin':'COMMAND',Events:'COMMAND','Incident Command':'COMMAND','Robot Control':'FIELD'} as Record<Page,string>", s, count=1)
-          s=re.sub(r"const icons:Record<Page,.*?>=", "const icons:Record<Page,typeof HomeIcon>=", s, count=1)
-          s=s.replace("else if(p.type==='robot_telemetry')", "else if((p as {type?:string}).type==='robot_telemetry')")
+          p = Path('src/App.tsx')
+          s = p.read_text()
+          s = re.sub(r"const groups:Record<Page,string>=\{.*?\} as Record<Page,string>", "const groups:Record<Page,string>={Home:'COMMAND','Live Map':'COMMAND','3D Digital Twin':'COMMAND',Events:'COMMAND','Incident Command':'COMMAND','Robot Control':'FIELD'} as Record<Page,string>", s, count=1)
+          s = re.sub(r"const icons:Record<Page,.*?>=", "const icons:Record<Page,typeof HomeIcon>=", s, count=1)
+          s = s.replace("else if(p.type==='robot_telemetry')", "else if((p as {type?:string}).type==='robot_telemetry')")
+          if "./storage/history" not in s:
+              s = s.replace("import './App.css'", "import './App.css'\nimport { appendHistory, loadHistory } from './storage/history'")
+          s = s.replace("[records,setRecords]=useState<Record<string,unknown>[]>(()=>{try{return JSON.parse(localStorage.getItem('fire-echo-records')||'[]')}catch{return[]}})", "[records,setRecords]=useState<Record<string,unknown>[]>([])")
+          old = "useEffect(()=>{try{localStorage.setItem('fire-echo-records',JSON.stringify(records.slice(-500)))}catch{}},[records])"
+          new = "useEffect(()=>{void loadHistory(500).then(rows=>setRecords(rows)).catch(()=>undefined)},[])\nuseEffect(()=>{if(records.length)void appendHistory(records.slice(-1)).catch(()=>undefined)},[records])"
+          if old in s:
+              s = s.replace(old, new)
+          old_robot = "else if((p as {type?:string}).type==='robot_telemetry'){setRobot(r=>({...r,...p,connected:true,source:'REAL'} as Robot))}"
+          new_robot = "else if((p as {type?:string}).type==='robot_telemetry'){setRobot(r=>({...r,...p,connected:true,source:'REAL'} as Robot))}else if((p as {type?:string}).type==='robot_ack'&&typeof (p as {ack?:unknown}).ack==='string'){setRobot(r=>({...r,ack:String((p as {ack?:unknown}).ack),connected:true,source:'REAL'}))}"
+          if old_robot in s:
+              s = s.replace(old_robot, new_robot)
           p.write_text(s)
           PY
       - name: Install dependencies
@@ -36,4 +47,4 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add src/App.tsx package-lock.json
-          git diff --cached --quiet || (git commit -m 'chore: synchronize build source and lockfile' && git push)
+          git diff --cached --quiet || (git commit -m 'feat: harden telemetry history and robot acknowledgements' && git push)
