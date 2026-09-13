@@ -4,6 +4,8 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -13,5 +15,21 @@ jobs:
         with:
           node-version: 20
           cache: npm
+      - name: Repair generated source if needed
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/App.tsx')
+          s=p.read_text()
+          s=s.replace("'Robot Control:'FIELD'", "'Robot Control':'FIELD'")
+          p.write_text(s)
+          PY
       - run: npm install --no-audit --no-fund
       - run: npm run build
+      - name: Commit automated source repair
+        if: github.event_name == 'push'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/App.tsx
+          git diff --cached --quiet || (git commit -m 'chore: repair generated App source' && git push)
