@@ -20,7 +20,7 @@ jobs:
           from pathlib import Path
           p=Path('src/App.tsx')
           s=p.read_text()
-          s=s.replace("'Robot Control:'FIELD'", "'Robot Control':'FIELD'")
+          s=s.replace("Robot Control:'FIELD'", "'Robot Control':'FIELD'")
           p.write_text(s)
           PY
       - run: npm install --no-audit --no-fund
