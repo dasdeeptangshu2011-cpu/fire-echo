@@ -21,7 +21,7 @@ jobs:
           import re
           p=Path('src/App.tsx')
           s=p.read_text()
-          s=re.sub(r"const groups:Record<Page,string>=\\{.*?\\} as Record<Page,string>", "const groups:Record<Page,string>={Home:'COMMAND','Live Map':'COMMAND','3D Digital Twin':'COMMAND',Events:'COMMAND','Incident Command':'COMMAND','Robot Control':'FIELD'} as Record<Page,string>", s, count=1)
+          s=re.sub(r"const groups:Record<Page,string>=\{.*?\} as Record<Page,string>", "const groups:Record<Page,string>={Home:'COMMAND','Live Map':'COMMAND','3D Digital Twin':'COMMAND',Events:'COMMAND','Incident Command':'COMMAND','Robot Control':'FIELD'} as Record<Page,string>", s, count=1)
           s=re.sub(r"const icons:Record<Page,.*?>=", "const icons:Record<Page,typeof HomeIcon>=", s, count=1)
           s=s.replace("else if(p.type==='robot_telemetry')", "else if((p as {type?:string}).type==='robot_telemetry')")
           p.write_text(s)
